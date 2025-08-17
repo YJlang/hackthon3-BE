@@ -63,7 +63,7 @@ public class User {
      */
     @Column(columnDefinition = "INT DEFAULT 0")
     @Builder.Default
-    private Integer points = 0;
+    private Integer points = 9999999;
 
     /**
      * 계정 생성일시

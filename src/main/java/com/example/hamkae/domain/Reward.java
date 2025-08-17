@@ -5,21 +5,25 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 상품권 교환을 관리하는 엔티티 클래스
  * 사용자가 포인트를 상품권으로 교환하는 요청을 관리합니다.
  *
- * @author 윤준하
+ * @author 권오윤
  * @version 1.0
- * @since 2025-08-13
+ * @since 2025-08-18
  */
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -50,11 +54,18 @@ public class Reward {
     private Integer pointsUsed;
 
     /**
-     * 교환할 상품권 타입
-     * 예: "온누리상품권", "시장상품권" 등
+     * 교환할 상품권 금액 타입
+     * 5000원, 10000원, 30000원 중 하나
      */
-    @Column(nullable = false, length = 50)
-    private String rewardType;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private RewardType rewardType;
+
+    /**
+     * 교환한 상품권 개수
+     */
+    @Column(nullable = false)
+    private Integer quantity;
 
     /**
      * 교환 요청의 처리 상태
@@ -82,12 +93,39 @@ public class Reward {
     private LocalDateTime processedAt;
 
     /**
+     * 교환으로 발급된 핀번호 목록
+     */
+    @OneToMany(mappedBy = "reward", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<RewardPin> pins = new ArrayList<>();
+
+
+    /**
      * 상품권 교환 상태를 나타내는 열거형
      */
     public enum RewardStatus {
         PENDING,    // 대기중
         APPROVED,   // 승인됨
         REJECTED    // 거부됨
+    }
+
+    /**
+     * 상품권 금액 타입
+     */
+    public enum RewardType {
+        FIVE_THOUSAND(5000),
+        TEN_THOUSAND(10000),
+        THIRTY_THOUSAND(30000);
+
+        private final int amount;
+
+        RewardType(int amount) {
+            this.amount = amount;
+        }
+
+        public int getAmount() {
+            return amount;
+        }
     }
 
     /**
@@ -108,7 +146,7 @@ public class Reward {
 
     /**
      * 교환 요청이 대기 중인지 확인하는 메서드
-     * 
+     *
      * @return 대기 중이면 true
      */
     public boolean isPending() {
@@ -117,7 +155,7 @@ public class Reward {
 
     /**
      * 교환 요청이 승인되었는지 확인하는 메서드
-     * 
+     *
      * @return 승인되었으면 true
      */
     public boolean isApproved() {
@@ -126,7 +164,7 @@ public class Reward {
 
     /**
      * 교환 요청이 거부되었는지 확인하는 메서드
-     * 
+     *
      * @return 거부되었으면 true
      */
     public boolean isRejected() {
@@ -135,10 +173,11 @@ public class Reward {
 
     /**
      * 교환 요청이 처리 완료되었는지 확인하는 메서드
-     * 
+     *
      * @return 승인 또는 거부되었으면 true
      */
     public boolean isProcessed() {
         return this.status != RewardStatus.PENDING;
     }
+
 }
