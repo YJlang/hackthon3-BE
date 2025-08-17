@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 /**
  * 상품권 교환 요청을 위한 DTO
  * 
- * @author 윤준하
+ * @author 권오윤
  * @version 1.0
- * @since 2025-08-13
+ * @since 2025-08-18
  */
 @Data
 @Builder

@@ -12,7 +12,12 @@ import java.time.LocalDateTime;
 
 /**
  * 개별 상품권 핀번호를 저장하는 엔티티
+ *
+ * @author 권오윤
+ *@version 1.0
+ *@since 2025-08-18
  */
+
 @Entity
 @Getter
 @NoArgsConstructor

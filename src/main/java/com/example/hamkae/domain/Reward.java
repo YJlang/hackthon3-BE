@@ -17,9 +17,9 @@ import java.util.List;
  * 상품권 교환을 관리하는 엔티티 클래스
  * 사용자가 포인트를 상품권으로 교환하는 요청을 관리합니다.
  *
- * @author 윤준하
+ * @author 권오윤
  * @version 1.0
- * @since 2025-08-13
+ * @since 2025-08-18
  */
 @Entity
 @Getter

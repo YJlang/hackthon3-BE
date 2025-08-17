@@ -1,6 +1,7 @@
 package com.example.hamkae.DTO;
 
 import com.example.hamkae.domain.Reward;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -13,14 +14,15 @@ import java.time.LocalDateTime;
 /**
  * 상품권 교환 조회를 위한 응답 DTO
  * 
- * @author 윤준하
+ * @author 권오윤
  * @version 1.0
- * @since 2025-08-13
+ * @since 2025-08-18
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RewardResponseDTO {
 
     /**

@@ -18,7 +18,7 @@ import java.util.List;
  * 
  * @author 권오윤
  * @version 1.0
- * @since 2025-08-15
+ * @since 2025-08-18
  */
 @RestController
 @RequestMapping("/rewards")

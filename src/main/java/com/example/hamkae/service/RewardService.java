@@ -21,7 +21,7 @@ import java.util.List;
  * 
  * @author 권오윤
  * @version 1.0
- * @since 2025-08-15
+ * @since 2025-08-18
  */
 @Service
 @RequiredArgsConstructor
@@ -87,7 +87,12 @@ public class RewardService {
         log.info("사용자 {}가 {} 타입 {}개를 교환했습니다. 총 차감 포인트: {}, 교환ID: {}", 
                 userId, requestDTO.getRewardType(), quantity, totalPointsToUse, savedReward.getId());
 
-        return RewardResponseDTO.from(savedReward);
+        RewardResponseDTO response = RewardResponseDTO.from(savedReward);
+        // 교환 응답에서는 상태/시간을 숨긴다
+        response.setStatus(null);
+        response.setCreatedAt(null);
+        response.setProcessedAt(null);
+        return response;
     }
 
     /**
