@@ -21,7 +21,7 @@ import java.util.List;
  * 
  * @author 권오윤
  * @version 1.0
- * @since 2025-08-15
+ * @since 2025-08-18
  */
 @Service
 @RequiredArgsConstructor
@@ -32,8 +32,6 @@ public class RewardService {
     private final RewardRepository rewardRepository;
     private final UserRepository userRepository;
     
-    // 사용 안함 (금액별로 계산)
-    // private static final int POINTS_PER_REWARD = 5000;
 
     /**
      * 사용자의 포인트를 상품권으로 교환합니다.
@@ -89,7 +87,12 @@ public class RewardService {
         log.info("사용자 {}가 {} 타입 {}개를 교환했습니다. 총 차감 포인트: {}, 교환ID: {}", 
                 userId, requestDTO.getRewardType(), quantity, totalPointsToUse, savedReward.getId());
 
-        return RewardResponseDTO.from(savedReward);
+        RewardResponseDTO response = RewardResponseDTO.from(savedReward);
+        // 교환 응답에서는 상태/시간을 숨긴다
+        response.setStatus(null);
+        response.setCreatedAt(null);
+        response.setProcessedAt(null);
+        return response;
     }
 
     /**
@@ -98,6 +101,7 @@ public class RewardService {
      * @param userId 사용자 ID
      * @return 상품권 교환 요청 목록
      */
+    @Transactional(readOnly = true)
     public List<RewardResponseDTO> getUserRewards(Long userId) {
         return rewardRepository.findByUserId(userId)
                 .stream()
@@ -116,6 +120,7 @@ public class RewardService {
         }        
         return RewardResponseDTO.from(reward);
     }
+
     /**
      * 상품권 타입을 검증합니다.
      * 

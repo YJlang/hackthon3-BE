@@ -18,7 +18,7 @@ import java.util.List;
  * 
  * @author 권오윤
  * @version 1.0
- * @since 2025-08-15
+ * @since 2025-08-18
  */
 @RestController
 @RequestMapping("/rewards")
@@ -92,7 +92,7 @@ public class RewardController {
     /**
      * 사용자의 상품권 교환 요청 목록을 조회합니다.
      * GET /rewards
-     * 
+     *
      * @param authorization 토큰
      * @return 상품권 교환 요청 목록
      */
@@ -151,7 +151,7 @@ public class RewardController {
                     .message(e.getMessage())
                     .build();
             return ResponseEntity.status(403).body(apiResponse); 
-        }catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             ApiResponse<RewardResponseDTO> apiResponse = ApiResponse.<RewardResponseDTO>builder()
                     .success(false)
                     .message(e.getMessage())
@@ -180,5 +180,4 @@ public class RewardController {
                 .map(user -> user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
-    
 }

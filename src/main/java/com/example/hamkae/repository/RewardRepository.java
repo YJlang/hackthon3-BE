@@ -12,7 +12,7 @@ import java.util.Optional;
  * 
  * @author 권오윤
  * @version 1.0
- * @since 2025-08-15
+ * @since 2025-08-18
  */
 @Repository
 public interface RewardRepository extends JpaRepository<Reward, Long> {

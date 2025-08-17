@@ -1,6 +1,7 @@
 package com.example.hamkae.DTO;
 
 import com.example.hamkae.domain.Reward;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RewardResponseDTO {
 
     /**

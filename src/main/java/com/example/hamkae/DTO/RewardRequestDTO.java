@@ -28,6 +28,4 @@ public class RewardRequestDTO {
      * 허용값: FIVE_THOUSAND, TEN_THOUSAND, THIRTY_THOUSAND
      */
     private String rewardType;
-
 }
-
