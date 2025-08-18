@@ -39,6 +39,8 @@ public class PhotoService {
     private final UserRepository userRepository;
     private final FileUploadService fileUploadService;
     private final GptVerificationService gptVerificationService;
+    private final ImageValidationService imageValidationService;
+    private final AiVerificationTaskService aiVerificationTaskService;
 
     /**
      * 청소 인증용 사진들을 업로드하고 AI 검증을 수행합니다.
@@ -68,10 +70,17 @@ public class PhotoService {
             if (images != null && images.length > 0) {
                 for (MultipartFile image : images) {
                     if (!image.isEmpty()) {
-                        // 이미지 파일 업로드
+                        // 1단계: 이미지 품질 검증
+                        imageValidationService.validateImageQuality(image);
+                        
+                        // 2단계: 중복 업로드 검증
+                        int existingPhotos = photoRepository.countByMarkerIdAndType(markerId, photoType);
+                        imageValidationService.validateDuplicateUpload(markerId, photoType.name(), userId, existingPhotos);
+                        
+                        // 3단계: 이미지 파일 업로드
                         String imagePath = fileUploadService.uploadImage(image);
                         
-                        // Photo 엔티티 생성
+                        // 4단계: Photo 엔티티 생성
                         Photo photo = Photo.builder()
                                 .marker(marker)
                                 .user(user)
@@ -79,11 +88,11 @@ public class PhotoService {
                                 .type(photoType)
                                 .build();
                         
-                        // 사진 저장
+                        // 5단계: 사진 저장
                         Photo savedPhoto = photoRepository.save(photo);
                         photoIds.add(savedPhoto.getId());
                         
-                        // 마커에 사진 추가 (양방향 관계 설정)
+                        // 6단계: 마커에 사진 추가 (양방향 관계 설정)
                         marker.addPhoto(savedPhoto);
                         
                         log.info("청소 인증용 사진 업로드 완료: markerId={}, type=AFTER, photoId={}", 
@@ -94,8 +103,8 @@ public class PhotoService {
                 // 마커 저장 (양방향 관계 설정)
                 markerRepository.save(marker);
                 
-                // AI 검증 수행 (비동기로 처리하여 응답 속도 향상)
-                performAiVerification(markerId, userId);
+                // AI 검증은 백그라운드 비동기 작업으로 수행하여 업로드 응답 지연을 줄임
+                performAiVerificationAsync(markerId, userId);
             }
             
             log.info("청소 인증용 사진들 업로드 완료: markerId={}, type=AFTER, count={}", 
@@ -107,6 +116,13 @@ public class PhotoService {
             log.error("이미지 파일 업로드 실패: markerId={}, photoType=AFTER", markerId, e);
             throw new RuntimeException("이미지 파일 업로드에 실패했습니다: " + e.getMessage());
         }
+    }
+
+    /**
+     * 업로드 이후 AI 검증을 비동기로 수행합니다.
+     */
+    public void performAiVerificationAsync(Long markerId, Long userId) {
+        aiVerificationTaskService.verifyMarkerAsync(markerId, userId);
     }
 
     /**
