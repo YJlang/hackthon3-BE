@@ -5,6 +5,7 @@ import com.example.hamkae.config.JwtUtil;
 import com.example.hamkae.repository.UserRepository;
 
 import com.example.hamkae.service.PhotoService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/photos")
+
 public class PhotoController {
 
     private final PhotoService photoService;
@@ -36,14 +38,15 @@ public class PhotoController {
      * 마커를 클릭한 후 청소 완료 사진을 업로드할 때 사용합니다.
      * 
      * @param markerId 마커 ID
-     * @param images 업로드할 이미지 파일들
+     * @param images 업로드할 이미지 파일들 (form-data의 'images' 키로 전송)
      * @param authorization JWT 인증 토큰
      * @return 업로드된 사진 정보
      */
     @PostMapping("/upload/cleanup")
+
     public ResponseEntity<ApiResponse<Map<String, Object>>> uploadCleanupPhoto(
             @RequestParam("marker_id") Long markerId,
-            @RequestParam(value = "images", required = false) MultipartFile[] images,
+            @RequestParam("images") MultipartFile[] images,
             @RequestHeader(value = "Authorization", required = false) String authorization) {
         
         // 인증 토큰 검증
@@ -90,7 +93,9 @@ public class PhotoController {
      * @return 사진 상세 정보
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getPhotoById(@PathVariable Long id) {
+
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getPhotoById(
+            @PathVariable Long id) {
         try {
             Map<String, Object> photoInfo = photoService.getPhotoById(id);
             return ResponseEntity.ok(ApiResponse.success("사진 조회 완료", photoInfo));
@@ -106,7 +111,9 @@ public class PhotoController {
      * @return 해당 마커의 사진 목록
      */
     @GetMapping("/marker/{markerId}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getPhotosByMarkerId(@PathVariable Long markerId) {
+
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getPhotosByMarkerId(
+            @PathVariable Long markerId) {
         try {
             Map<String, Object> photosInfo = photoService.getPhotosByMarkerId(markerId);
             return ResponseEntity.ok(ApiResponse.success("마커별 사진 조회 완료", photosInfo));

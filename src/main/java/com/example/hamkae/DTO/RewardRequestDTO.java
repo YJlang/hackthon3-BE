@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 
 /**
  * 상품권 교환 요청을 위한 DTO
- * 
- * @author 윤준하
+ *
+ * @author 권오윤
  * @version 1.0
- * @since 2025-08-13
+ * @since 2025-08-18
  */
 @Data
 @Builder
@@ -19,13 +19,13 @@ import lombok.NoArgsConstructor;
 public class RewardRequestDTO {
 
     /**
-     * 교환에 사용할 포인트 수량
+     * 교환할 상품권 개수 (1 이상)
      */
-    private Integer pointsUsed;
+    private Integer quantity;
 
     /**
-     * 교환할 상품권 타입
-     * 예: "온누리상품권", "시장상품권" 등
+     * 교환할 상품권 금액 타입 (영문 열거형 값)
+     * 허용값: FIVE_THOUSAND, TEN_THOUSAND, THIRTY_THOUSAND
      */
     private String rewardType;
 }

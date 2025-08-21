@@ -1,38 +1,43 @@
 package com.example.hamkae.controller;
 
+import com.example.hamkae.DTO.*;
 import com.example.hamkae.config.JwtUtil;
 import com.example.hamkae.domain.User;
-import com.example.hamkae.DTO.ApiResponse;
-import com.example.hamkae.DTO.LoginRequestDTO;
-import com.example.hamkae.DTO.RegisterRequestDTO;
+import com.example.hamkae.repository.UserRepository;
 import com.example.hamkae.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
+
 /**
- * 사용자 인증 관련 API를 처리하는 컨트롤러
- * 회원가입, 로그인 등의 인증 기능을 제공합니다.
+ * 사용자 인증 및 사용자 정보 관련 API를 처리하는 컨트롤러
+ * 회원가입, 로그인, 프로필 조회/수정 등의 기능을 제공합니다.
  * 
- * @author 개발팀
+ * @author 권오윤
  * @version 1.0
- * @since 2024-12-19
+ * @since 2025-08-14
  */
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
+@Tag(name = "인증 API", description = "사용자 회원가입 및 로그인 관련 API")
 public class AuthController {
 
     /**
      * 사용자 관련 비즈니스 로직을 처리하는 서비스
      */
     private final UserService userService;
+    private final UserRepository userRepository;
     
     /**
      * JWT 토큰 생성 및 검증을 위한 유틸리티
@@ -46,6 +51,22 @@ public class AuthController {
      * @return 회원가입 결과 (성공 시 user_id 포함)
      */
     @PostMapping("/register")
+    @Operation(
+        summary = "회원가입",
+        description = "새로운 사용자를 등록합니다. 이름, 아이디, 비밀번호가 필요합니다."
+    )
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200", 
+            description = "회원가입 성공",
+            content = @Content(schema = @Schema(implementation = ApiResponse.class))
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "400", 
+            description = "잘못된 요청 (중복 아이디 등)",
+            content = @Content(schema = @Schema(implementation = ApiResponse.class))
+        )
+    })
     public ResponseEntity<ApiResponse<Map<String, Object>>> register(@RequestBody RegisterRequestDTO request) {
         try {
             // 사용자 등록 처리
@@ -69,6 +90,22 @@ public class AuthController {
      * @return 로그인 결과 (성공 시 JWT 토큰과 사용자 정보 포함)
      */
     @PostMapping("/login")
+    @Operation(
+        summary = "로그인",
+        description = "사용자 아이디와 비밀번호로 로그인하여 JWT 토큰을 발급받습니다."
+    )
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200", 
+            description = "로그인 성공",
+            content = @Content(schema = @Schema(implementation = ApiResponse.class))
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "401", 
+            description = "인증 실패 (잘못된 아이디/비밀번호)",
+            content = @Content(schema = @Schema(implementation = ApiResponse.class))
+        )
+    })
     public ResponseEntity<ApiResponse<Map<String, Object>>> login(@RequestBody LoginRequestDTO request) {
         // 사용자 정보 검증
         User user = userService.validateUser(request.getUsername(), request.getPassword());
@@ -92,5 +129,76 @@ public class AuthController {
         data.put("user", userInfo);
         
         return ResponseEntity.ok(ApiResponse.success("로그인 성공", data));
+    }
+
+    /**
+     * 프로필 조회/수정 등의 기능을 제공합니다.
+     *
+     * @author 권오윤
+     * @version 1.0
+     * @since 2025-08-14
+     */
+
+    /**
+     * 내 프로필 정보를 조회합니다.
+     * Authorization: Bearer <JWT>
+     */
+    @GetMapping("/users/profile")
+    public ResponseEntity<ApiResponse<UserProfileResponseDTO>> getMyProfile(
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+
+        // JWT 토큰 검증 및 사용자 조회
+        User user = getUserFromToken(authorization);
+        if (user == null) {
+            return ResponseEntity.status(401).body(ApiResponse.error("인증에 실패했습니다."));
+        }
+
+        UserProfileResponseDTO dto = UserProfileResponseDTO.from(user);
+        return ResponseEntity.ok(ApiResponse.success("프로필 조회 성공", dto));
+    }
+
+    /**
+     * 사용자 프로필(이름)을 수정합니다.
+     * 요청 본문: {"name": "string"}
+     * 응답: {"success": true, "message": "프로필 수정 완료"}
+     */
+    @PutMapping("/users/profile")
+    public ResponseEntity<ApiResponse<String>> updateMyProfile(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestBody UserProfileUpdateRequestDTO request) {
+
+        // JWT 토큰 검증 및 사용자 조회
+        User user = getUserFromToken(authorization);
+        if (user == null) {
+            return ResponseEntity.status(401).body(ApiResponse.error("인증에 실패했습니다."));
+        }
+
+        try {
+            user.updateName(request.getName());
+            userRepository.save(user);
+            return ResponseEntity.ok(ApiResponse.success("프로필 수정 완료"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("프로필 수정에 실패했습니다."));
+        }
+    }
+
+    /**
+     * JWT 토큰에서 사용자 정보를 추출하는 공통 메서드입니다.
+     * 
+     * @param authorization Authorization 헤더 값
+     * @return 인증된 사용자 객체, 인증 실패 시 null
+     */
+    private User getUserFromToken(String authorization) {
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            return null;
+        }
+
+        String token = authorization.substring(7);
+        String username = jwtUtil.validateAndGetUsername(token);
+        if (username == null) {
+            return null;
+        }
+
+        return userRepository.findByUsername(username).orElse(null);
     }
 }

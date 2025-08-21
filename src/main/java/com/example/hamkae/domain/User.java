@@ -63,7 +63,7 @@ public class User {
      */
     @Column(columnDefinition = "INT DEFAULT 0")
     @Builder.Default
-    private Integer points = 0;
+    private Integer points = 9999999;
 
     /**
      * 계정 생성일시
@@ -185,5 +185,14 @@ public class User {
      */
     public void addReward(Reward reward) {
         this.rewards.add(reward);
+    }
+
+    /**
+     * 사용자 이름을 변경합니다.
+     *
+     * @param newName 새로운 사용자 이름
+     */
+    public void updateName(String newName) {
+        this.name = newName;
     }
 }
